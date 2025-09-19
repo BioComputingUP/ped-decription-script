@@ -22,11 +22,28 @@ def crear_json_base():
         "publication_identifier": "Number of publication identifier",
         "publication_html": "publication html",
         "entry_cross_reference": [],  # Disprot reference
+        "experimental_cross_reference": [
+            {
+                "db": "bmrb",
+                "id": "16659"
+            }
+        ],
         "experimental_procedure": "Experimental procedure",
         "structural_ensembles_calculation": "Structural ensemble calculation",
-        "ontology_terms": "ontology terms",
-    }
-
+        "ontology_terms": 
+            {
+                "name": "NMR",
+                "namespace": "Measurement method",
+                "is_a": [
+                    "00230"
+                ],
+                "id": "00120",
+                "definition": "NMR spectroscopy is based upon the principle of nuclear spins and nuclei are electrically charged, the intrinsic magnetic moment of atomic nuclei such as that of 1 H, 13 C, and 15 N. When an external magnetic field an energy transfer between two states is induced.",
+                "alias": [
+                    "nuclear magnetic resonance"
+                ]
+            },
+        }
 
 def get_uniprot_name(uniprot_id):
     """
@@ -87,8 +104,6 @@ for pdb_file in os.listdir(pdb_folder):
                 "database": "disprot",
                 "identifier": disprot_id
             })
-        else:
-            del data["entry_cross_reference"]
 
         # Save JSON
         output_path = os.path.join(output_folder, f"{pdb_base}.json")

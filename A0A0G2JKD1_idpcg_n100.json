@@ -1,0 +1,203 @@
+{
+    "title": "Structural ensemble of pSic1 (1-90) with phosphorylations at Thr5, Thr33, Thr45, Ser69, Ser76, Ser80",
+    "authors": [
+      {
+        "name": "Tanja Mittag",
+        "corresponding_author": false
+      },
+      {
+        "name": "Joseph A. Marsh",
+        "corresponding_author": false
+      },
+      {
+        "name": "Alexander Grishaev",
+        "corresponding_author": false
+      },
+      {
+        "name": "Stephen Orlicky",
+        "corresponding_author": false
+      },
+      {
+        "name": "Hong Lin",
+        "corresponding_author": false
+      },
+      {
+        "name": "Frank Sicheri",
+        "corresponding_author": false
+      },
+      {
+        "name": "Mike Tyers",
+        "corresponding_author": false
+      },
+      {
+        "name": "Julie D. Forman-Kay",
+        "corresponding_author": false
+      }
+    ],
+    "publication_status": "Published",
+    "publication_source": "pubmed",
+    "publication_identifier": "20399186",
+    "publication_html": "Structure/function implications in a dynamic complex of the intrinsically disordered Sic1 with the Cdc4 subunit of an SCF ubiquitin ligase. <i> Mittag T, Marsh J, Grishaev A, Orlicky S, Lin H, Sicheri F, Tyers M, Forman-Kay JD. </i> Structure, 2010",
+    "entry_cross_reference": [
+      {
+        "db": "disprot",
+        "id": "DP00631"
+      }
+    ],
+    "experimental_cross_reference": [
+      {
+        "db": "bmrb",
+        "id": "16659"
+      }
+    ],
+    "experimental_procedure": "NMR Experiments: All NMR data were collected on Varian Inova 500 MHz, 600 MHz and 800 MHz spectrometers at 5 °C. The NMR samples were prepared in PBS and spectra were processed and analysed using NMRPipe/NMR Draw. Assignments and relaxation experiments were reported previously. NMR data is deposited in the BMRB with accession codes 16657 and 16659 for Sic1 and pSic1, respectively. PRE experiments and NH R2 NMR experiments were performed . The paramagnetic contribution to the transverse relaxation rate, (i.e. the paramagnetic relaxation enhancement, PRE), is the difference between transverse relaxation rates in paramagnetic and diamagnetic states. 1DHN RDCs were measured on 0.3 mM and 0.2 mM Sic1 and pSic1 samples, respectively. Couplings were extracted using “Fuda: A function and data fitting and analysis package”. Errors were calculated from at least duplicate data sets. SAXS data collection: Small angle x-ray scattering data were acquired at the Beam Line 12-IDC at the Advanced Light Source synchrotron (Argonne National Laboratory, Argonne, IL). A total of 20 sequential data frames with exposure times of 0.25 seconds were recorded. Samples and buffers were flowing during data collection to prevent radiation damage. Individual data frames were converted from 2D to 1D profiles and normalized by the corresponding incident beam intensities. The final 1D scattering profiles and their uncertainties were then calculated as means and standard deviations over the 20 frames and then buffer data were subtracted from the sample data.",
+    "structural_ensembles_calculation": "Ensemble models of intrinsically disordered Sic1 and pSic1 were calculated using essentially the same approach as was described (Marsh and Forman-Kay, 2009). Distance restraints were calculated from PRE measurements. SAXS profiles of the experimentally restrained ensembles were calculated by predicting scattering curves for each individual member using the program CRYSOL (Svergun et al., 1995) and averaged over the members of the ensemble. Chemical shifts were calculated from individual conformers using SHIFTX (Neal et al., 2003). RDCs were calculated using a local alignment approach, in which local alignment tensors are calculated for 15 residue fragments of the sequence in a sliding window fashion (Marsh et al., 2008). 15N R2 relaxation rates were compared to the number of heavy atoms in an 8 A ° radius of each measured nucleus, as previously described (Marsh and Forman-Kay, 2009). The Sic1 and pSic1 ensemble models comprised residues 1-90 of the full-length Sic1 amino acid sequence plus an N-terminal Gly-Ser sequence remaining after tag cleavage. Glutamate residues were used to represent the phosphorylated residues in pSic1 to facilitate use of TraDES (Feldman and Hogue, 2000). These glutamate residues were converted to the proper phosphorylated threonine or serine residues for electrostatic calculations. Three independent ensembles were calculated for each of free Sic1 and pSic1 and the pSic1 complex. Calculations were performed on a cluster of CPUs, with one main node performing the core conformational selection calculations and 8-12 nodes performing the iterative conformational sampling with CNS (Bru¨ nger et al., 1998), Unfoldtraj, and TraDES (Feldman and Hogue, 2000). The initial temperature for the ENSEMBLE calculations was set to 10,000 and decreased to 0.01 in 200,000 steps. The starting ensembles contained 200 structures and the number of conformers comprising the ensembles was decreased by one after each successful ENSEMBLE calculation in which full agreement with experimental restraints was achieved. Calculations were stopped when a smaller ensemble could not be successfully calculated within 72 hr.",
+    "ontology_terms": [
+      {
+        "name": "NMR",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00230"
+        ],
+        "id": "00120",
+        "definition": "NMR spectroscopy is based upon the principle of nuclear spins and nuclei are electrically charged, the intrinsic magnetic moment of atomic nuclei such as that of 1 H, 13 C, and 15 N. When an external magnetic field an energy transfer between two states is induced.",
+        "alias": [
+          "nuclear magnetic resonance"
+        ]
+      },
+      {
+        "name": "RDC",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00120"
+        ],
+        "id": "00166",
+        "definition": "partial alignement between two spins of a molecule in solution",
+        "alias": [
+          "residual dipolar coupling",
+          "RDCs",
+          "residual dipolar coupling"
+        ]
+      },
+      {
+        "name": "chemical shift",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00120"
+        ],
+        "id": "00167",
+        "definition": "shift of the intrinsic NMR frequency",
+        "alias": [
+          "CS",
+          "CSs",
+          "chemical shifts"
+        ]
+      },
+      {
+        "name": "relaxation",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00120"
+        ],
+        "id": "00168",
+        "definition": "return of nuclei from an excited state to a ground state",
+        "alias": [
+          "relaxations"
+        ]
+      },
+      {
+        "name": "T2 relaxation",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00168"
+        ],
+        "id": "00169",
+        "definition": "(transverse relaxation) spin-spin",
+        "alias": [
+          "transverse relaxation",
+          "R2",
+          "T2 relaxations"
+        ]
+      },
+      {
+        "name": "PRE",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00168"
+        ],
+        "id": "00171",
+        "definition": "paramagnetic ions are used to induce enhanced relaxation of the spins close to the paramagnetic spin label",
+        "alias": [
+          "paramagnetic relaxation enhancement",
+          "spin label relaxation enhancement",
+          "PREs"
+        ]
+      },
+      {
+        "name": "SAXS",
+        "namespace": "Measurement method",
+        "is_a": [
+          "00230"
+        ],
+        "id": "00125",
+        "definition": "part of the small-angle scattering (SAS) techniques, along with SANS. In SAXS, a protein solution is exposed to X-rays and scattering is recorded at small angles up to a few degrees",
+        "alias": [
+          "small angle x-ray scattering"
+        ]
+      },
+      {
+        "name": "TraDES",
+        "namespace": "Ensemble generation method",
+        "is_a": [
+          "00184"
+        ],
+        "id": "00186",
+        "definition": "initial pool generation"
+      },
+      {
+        "name": "CNS",
+        "namespace": "Ensemble generation method",
+        "is_a": [
+          "00188"
+        ],
+        "id": "00192",
+        "definition": "Crystallography and NMR System (CNS) program for computational structural biology"
+      },
+      {
+        "name": "CRYSOL",
+        "namespace": "Ensemble generation method",
+        "is_a": [
+          "00195"
+        ],
+        "id": "00208",
+        "definition": "program used to calculate scattering curves of each conformer from SAXS data"
+      },
+      {
+        "name": "ShiftX",
+        "namespace": "Ensemble generation method",
+        "is_a": [
+          "00195"
+        ],
+        "id": "00210",
+        "definition": "estimation of chemical shifts for NMR data"
+      },
+      {
+        "name": "SHIFTS",
+        "namespace": "Ensemble generation method",
+        "is_a": [
+          "00195"
+        ],
+        "id": "00239",
+        "definition": "estimation of chemical shifts for NMR data"
+      },
+      {
+        "name": "ENSEMBLE",
+        "namespace": "Ensemble generation method",
+        "is_a": [
+          "00212"
+        ],
+        "id": "00216",
+        "definition": "approach for the determination of a set of conformers (SAXS and NMR data)"
+      }
+    ]
+  }
