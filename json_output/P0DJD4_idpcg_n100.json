@@ -1,0 +1,36 @@
+{
+    "title": "Structural ensemble of RNA-binding motif protein, Y chromosome, family 1 member C",
+    "authors": [
+        {
+            "name": "Probando Probando",
+            "corresponding_author": false
+        }
+    ],
+    "publication_status": "Publication status",
+    "publication_source": "Publication source",
+    "publication_identifier": "Number of publication identifier",
+    "publication_html": "publication html",
+    "entry_cross_reference": [],
+    "experimental_cross_reference": [
+        {
+            "db": "bmrb",
+            "id": "16659"
+        }
+    ],
+    "experimental_procedure": "Experimental procedure",
+    "structural_ensembles_calculation": "Structural ensemble calculation",
+    "ontology_terms": [
+        {
+            "name": "NMR",
+            "namespace": "Measurement method",
+            "is_a": [
+                "00230"
+            ],
+            "id": "00120",
+            "definition": "NMR spectroscopy is based upon the principle of nuclear spins and nuclei are electrically charged, the intrinsic magnetic moment of atomic nuclei such as that of 1 H, 13 C, and 15 N. When an external magnetic field an energy transfer between two states is induced.",
+            "alias": [
+                "nuclear magnetic resonance"
+            ]
+        }
+    ]
+}
