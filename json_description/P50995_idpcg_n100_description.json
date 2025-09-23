@@ -1,0 +1,20 @@
+{
+    "title": "Structural ensemble of Annexin A11",
+    "authors": [
+        {
+            "name": "Nombre Apellido",
+            "corresponding_author": false
+        }
+    ],
+    "publication_status": "Publication status",
+    "publication_source": "Publication source",
+    "publication_identifier": "Number of publication identifier",
+    "publication_html": "publication html",
+    "entry_cross_reference": [],
+    "experimental_cross_reference": [],
+    "experimental_procedure": [],
+    "structural_ensembles_calculation": "Structural ensemble calculation",
+    "ontology_terms": [
+        {}
+    ]
+}
