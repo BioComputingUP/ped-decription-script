@@ -73,6 +73,10 @@ Main script to generate JSON files from PDB structures. For each PDB file, it cr
 
 #### Expected folder name / file 
 - `pdb_files/` — Contains input PDB files
+
+#### Created folders 
+- `jsonFiles/` — Contains description JSON files of the PDBs in `pdb_files/`. The file names are the same as PDB now with .json
+- `const_files/` — Contains construct JSON files of the PDBS in `pdb_files/`. The file names are the same as PDB now with _const.json
   
 ### **2.4 `Job-description-PED.py`**
 
@@ -94,7 +98,7 @@ This script automates the creation of **drafts** in the **PED database** from lo
 #### Expected folder name 
 
 - `pdb_files/` — Contains input PDB files  
-- `jsonFiles/` — Contains description `.json` files (same basename as PDB)
+- `jsonFiles/` — Contains description `.json` files (same basename as PDB) 
 
 
 ### **2.5. `construct-post-PED.py`**
@@ -112,7 +116,7 @@ After draft creation and JSON description files have been uploaded using `Job-de
 
 #### Expected folder/archives
 
-- `const_files/` — Contains construct JSON files (same prefix as PDB + "_const.json")
+- `const_files/` — Contains construct JSON files (same prefix as PDB + "_const.json") 
 - `job_tracking_log.csv` — Automatically created by Job-description-PED.py
 
 ## **3. Usage Example**
