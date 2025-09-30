@@ -72,7 +72,7 @@ Main script to generate JSON files from PDB structures. For each PDB file, it cr
 - **Construct JSON:** Chain and fragment information (sequence, start/end positions, UniProt ID) using `construct.py`. These files are used later in **`construct-post-PED.py`** to post constructs to the PED database.  
 
 #### Expected folder name / file 
-- `pdb_sample/` — Contains input PDB files
+- `pdb_files/` — Contains input PDB files
   
 ### **2.4 `Job-description-PED.py`**
 
@@ -93,7 +93,7 @@ This script automates the creation of **drafts** in the **PED database** from lo
 
 #### Expected folder name 
 
-- `pdb_files/` — Contains `.pdb` files  
+- `pdb_files/` — Contains input PDB files  
 - `jsonFiles/` — Contains description `.json` files (same basename as PDB)
 
 
