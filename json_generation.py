@@ -8,7 +8,7 @@ from construct import get_chain_sequences_and_last_residues, create_construct_js
 pdb_folder = "pdb_files"
 
 # separated out folders 
-desc_folder = "json_description"
+desc_folder = "jsonFiles"
 construct_folder = "json_construct"
 os.makedirs(desc_folder, exist_ok=True)
 os.makedirs(construct_folder, exist_ok=True)
