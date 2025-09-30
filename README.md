@@ -1,4 +1,4 @@
-## `description.py`
+## 🛠️ `description.py`
 
 This script provides helper functions to generate JSON description files for PDB entries in the PED database.
 
@@ -25,7 +25,31 @@ This script provides helper functions to generate JSON description files for PDB
      - `experimental_procedure`
      - `structural_ensembles_calculation`
      - `ontology_terms`
+    
+## 🛠️ `construct.py`
 
+This script provides helper functions to generate JSON construct files for drafts already generated in the PED database.
+
+### Description
+
+`construct.py` contains two main functions:
+
+1. **`get_chain_sequences_and_last_residues(pdb_path)`**  
+   - Extracts the amino acid sequence and last residue number for each chain in a PDB file.
+
+2. **`create_construct_json(chain_info, uniprot_id, protein_name)`** 
+   - Generates a JSON dictionary template for a PDB file construct.
+   - The returned dictionary includes fields such as:
+      - `chain_name`
+      - `fragments` (list with dictionaries containing):
+          - `description` (protein name from UniProt)
+          - `source_sequence`
+          - `start_position` (always 1)
+          - `end_position`
+          - `uniprot_acc`
+          - `definition_type` (`"Uniprot ACC"`)`
+
+  
 ## `Job-description-PED.py`
 
 This script automates the creation of **drafts** in the **PED database** from local PDB files and links them to their corresponding description information.
