@@ -5,7 +5,7 @@ from description import create_description_json, get_uniprot_name, get_disprot_i
 from construct import get_chain_sequences_and_last_residues, create_construct_json
 
 # folder with PDBs
-pdb_folder = "pdb_sample"
+pdb_folder = "pdb_files"
 
 # separated out folders 
 desc_folder = "json_description"
