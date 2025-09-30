@@ -9,7 +9,7 @@ pdb_folder = "pdb_files"
 
 # separated out folders 
 desc_folder = "jsonFiles"
-construct_folder = "json_construct"
+construct_folder = "const_files"
 os.makedirs(desc_folder, exist_ok=True)
 os.makedirs(construct_folder, exist_ok=True)
 
