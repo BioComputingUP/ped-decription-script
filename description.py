@@ -38,15 +38,52 @@ def create_description_json(uniprot_id):
     """
     data = {
         "title": [],
-        "authors": [{"name": "Nombre Apellido", "corresponding_author": False}],
-        "publication_status": "Publication status",
-        "publication_source": "Publication source",
-        "publication_identifier": "Number of publication identifier",
-        "publication_html": "publication html",
+        "authors": [
+            {
+                "name": "Zi Hao Liu", 
+                "corresponding_author": False
+            },
+            {
+                "name": "Oufan Zhang", 
+                "corresponding_author": False
+            },
+            {
+                "name": "Stefano De Castro", 
+                "corresponding_author": False
+            },
+            {
+                "name": "Kunyang Sun", 
+                "corresponding_author": False
+            },
+            {
+                "name": "Teresa Head-Gordon", 
+                "corresponding_author": False
+            },
+            {
+                "name": "Julie Forman-Kay", 
+                "corresponding_author": False
+            },
+        ],
+        "publication_status": "Unpublished",
+        "publication_source": "",
+        "publication_identifier": "",
+        "publication_html": "bioRxiv DOI",
         "entry_cross_reference": [],
         "experimental_cross_reference": [],
-        "experimental_procedure": [],
-        "structural_ensembles_calculation": "Structural ensemble calculation",
-        "ontology_terms": [{}],
+        "experimental_procedure": "N/A",
+        "structural_ensembles_calculation": "",
+        "md_calculation": "Fixed backbone energy minimization simulation with the AMBER99sb force-field through OpenMM at 300 K for a maximum of 2 ns to resolve any sidechain clashes.",
+        "ontology_terms": [
+            {
+                "name": "Molecular dynamics",
+                "namespace": "Molecular dynamics",
+                "id": "00219",
+                "definition": "computational approach that simulates atom motion and investigates their location in space",
+                "alias": [
+                    "molecular dynamics"
+                ]
+                
+            }
+        ],
     }
     return data
