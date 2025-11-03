@@ -39,8 +39,8 @@ def print_header(title):
 def print_subheader(title):
     print(f"\n--- {title} ---")
 
-def copy_batch_files(df_part, batch_dir, log_path):
-    """Copy PDBs of a sub-batch with progress reporting."""
+def move_batch_files(df_part, batch_dir, log_path):
+    """Move PDBs of a sub-batch with progress reporting."""
     os.makedirs(batch_dir, exist_ok=True)
     total = len(df_part)
 
@@ -49,12 +49,12 @@ def copy_batch_files(df_part, batch_dir, log_path):
             src = os.path.join(row["source_pdb_folder"], row["file"])
             dst = os.path.join(batch_dir, row["file"])
             try:
-                shutil.copy2(src, dst)
+                shutil.move(src, dst)
             except Exception as e:
-                log.write(f"[ERROR] {src} -> {dst}: {e}\n")
+                log.write(f"[ERROR] Moving {src} -> {dst}: {e}\n")
             # Inline progress
-            print(f"    Copying file {idx}/{total}", end="\r")
-    print()  # newline after copy loop
+            print(f"    Moving file {idx}/{total}", end="\r")
+    print()  # newline after move loop
 
 
 # ============================================================
@@ -91,7 +91,7 @@ for parent in parent_folders:
 
     output_base = os.path.join(results_dir, "batches_by_length")
     os.makedirs(output_base, exist_ok=True)
-    log_path = os.path.join(output_base, "copy_log.txt")
+    log_path = os.path.join(output_base, "move_log.txt")
 
     batch_records = []
     summary_records = []
@@ -117,7 +117,7 @@ for parent in parent_folders:
 
             print(f"  🧩 Creating sub-batch {i}/{n_chunks}: {part_name}")
             print(f"     Files in this sub-batch: {len(df_part)}")
-            copy_batch_files(df_part, batch_dir, log_path)
+            move_batch_files(df_part, batch_dir, log_path)
 
             batch_folder_rel = os.path.relpath(batch_dir, start=parent)
 
