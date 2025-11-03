@@ -1,77 +1,109 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Protein Ensemble Analysis Script
+--------------------------------
+Analyzes PDB ensembles, computing:
+ - File size (MB)
+ - Sequence length (first model)
+ - Summary statistics and distributions
+ - Sequence length vs. file size relationship
+
+Output:
+ - TSV files with detailed and summary data
+ - Plots (distribution and correlation)
+ - Readable text report
+"""
+
 import os
+import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# === Configuration ===
+# === CONFIGURATION ===
 folders = [
-    "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat2/completed_mediumF",
+#    "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat2/completed_mediumF",
     "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat3/completed_hardF_idpcg",
-    "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPForge_cat3/completed_hardF_idpforge"
 ]
 
 # Sequence length bins
-seq_bins = list(range(0, 2551, 50))  # 0-50, 51-100, ..., 2501+
+seq_bins = list(range(0, 2551, 50))  # 0–50, 51–100, ...
 seq_labels = [f"{i+1}-{i+50}" for i in seq_bins[:-1]]
 seq_labels.append(">2500")
 
+# Suppress unhelpful warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+
+# === CORE FUNCTION ===
 def analyze_pdb(path):
-    """Calcula tamaño del archivo y longitud de proteína (primer modelo)."""
+    """Compute file size and protein length for the first model."""
     size_mb = os.path.getsize(path) / (1024**2)
-    first_model_residues = set()
-    model_detected = False
+    residues = set()
+    model_started = False
+
     with open(path, "r") as f:
         for line in f:
-            if line.startswith("MODEL") and not model_detected:
-                model_detected = True
-            elif line.startswith("ATOM") and not first_model_residues is None:
-                # Identificador único de residuo: cadena + residuo
+            if line.startswith("MODEL") and not model_started:
+                model_started = True
+            elif line.startswith("ATOM"):
                 res_id = line[21:22].strip() + line[22:26].strip()
-                first_model_residues.add(res_id)
-            elif line.startswith("ENDMDL") and model_detected:
+                residues.add(res_id)
+            elif line.startswith("ENDMDL") and model_started:
                 break
-    # Si no hay modelos, leer todos los ATOM
-    if not model_detected:
-        with open(path, "r") as f:
-            first_model_residues = {line[21:22].strip() + line[22:26].strip() 
-                                    for line in f if line.startswith("ATOM")}
-    avg_len = len(first_model_residues)
-    return size_mb, avg_len
 
-# === Process each folder ===
+    # If no MODEL tag found, use all ATOM lines
+    if not model_started:
+        with open(path, "r") as f:
+            residues = {line[21:22].strip() + line[22:26].strip()
+                        for line in f if line.startswith("ATOM")}
+
+    return size_mb, len(residues)
+
+
+# === MAIN WORKFLOW ===
 for folder in folders:
-    main_folder = os.path.dirname(folder)
-    main_name = os.path.basename(main_folder)
-    
-    pdb_files = [f for f in os.listdir(folder) if f.endswith(".pdb")]
-    print(f"\nProcessing folder: {folder} ({len(pdb_files)} PDB files)")
-    
-    results_dir = os.path.join(main_folder, "results")
+    parent_folder = os.path.dirname(folder)
+    project_name = os.path.basename(parent_folder)
+    results_dir = os.path.join(parent_folder, "results")
     os.makedirs(results_dir, exist_ok=True)
-    
-    # === Analyze PDBs ===
+
+    pdb_files = [f for f in os.listdir(folder) if f.endswith(".pdb")]
+    total_pdbs = len(pdb_files)
+
+    print("\n" + "=" * 65)
+    print(f"📁 Processing folder: {project_name}")
+    print("=" * 65)
+    print(f"Path: {folder}")
+    print(f"Total PDB files detected: {total_pdbs}\n")
+
+    # === ANALYSIS ===
     data = []
-    for f in pdb_files:
+    for i, f in enumerate(pdb_files, start=1):
         path = os.path.join(folder, f)
+        print(f"  🔹 Analyzing {f} ({i}/{total_pdbs})...", end="\r")
         try:
-            size_mb, avg_len = analyze_pdb(path)
-            data.append({"file": f, "size_MB": size_mb, "avg_length": avg_len})
+            size_mb, length = analyze_pdb(path)
+            data.append({"file": f, "size_MB": size_mb, "avg_length": length})
         except Exception as e:
-            print(f"Error analyzing {f}: {e}")
-    
+            print(f"\n  ⚠️ Error analyzing {f}: {e}")
+
     df = pd.DataFrame(data)
-    df.to_csv(os.path.join(results_dir, f"{main_name}_ensemble_analysis.tsv"), sep="\t", index=False)
-    
-    # === Sequence length distribution ===
+    print(f"\n✅ Completed analysis of {len(df)} PDBs.\n")
+
+    # === SAVE DATA ===
+    tsv_path = os.path.join(results_dir, f"{project_name}_ensemble_analysis.tsv")
+    df.to_csv(tsv_path, sep="\t", index=False)
+
+    # === DISTRIBUTIONS ===
     bins_edges = seq_bins + [np.inf]
     df['seq_bin'] = pd.cut(df['avg_length'], bins=bins_edges, labels=seq_labels, right=True)
     seq_dist = df['seq_bin'].value_counts().reindex(seq_labels, fill_value=0)
-    
-    # === Summary statistics ===
-    summary_stats = {
+
+    # === STATS ===
+    summary = {
         "Total ensembles": len(df),
         "Min size (MB)": df["size_MB"].min(),
         "25th percentile size (MB)": df["size_MB"].quantile(0.25),
@@ -86,63 +118,65 @@ for folder in folders:
         "Max protein length": df['avg_length'].max(),
         "Mean protein length": df['avg_length'].mean(),
     }
-    
-    summary_df = pd.DataFrame([summary_stats])
-    summary_df.to_csv(os.path.join(results_dir, f"{main_name}_ensemble_summary_stats.tsv"), sep="\t", index=False)
-    
-    # === Text report simplified ===
-    report_path = os.path.join(results_dir, f"{main_name}_summary_report.txt")
+
+    pd.DataFrame([summary]).to_csv(
+        os.path.join(results_dir, f"{project_name}_ensemble_summary_stats.tsv"),
+        sep="\t", index=False
+    )
+
+    # === REPORT ===
+    report_path = os.path.join(results_dir, f"{project_name}_summary_report.txt")
     with open(report_path, "w") as report:
-        report.write(f"=== Ensemble Analysis Report: {main_name} ===\n\n")
-        report.write(f"Total ensembles analyzed: {summary_stats['Total ensembles']}\n\n")
-        
+        report.write(f"=== Ensemble Analysis Report: {project_name} ===\n\n")
+        report.write(f"Total ensembles analyzed: {summary['Total ensembles']}\n\n")
+
         report.write("File size statistics (MB):\n")
-        report.write(f"  Min: {summary_stats['Min size (MB)']:.2f}\n")
-        report.write(f"  25th percentile: {summary_stats['25th percentile size (MB)']:.2f}\n")
-        report.write(f"  Median: {summary_stats['Median size (MB)']:.2f}\n")
-        report.write(f"  75th percentile: {summary_stats['75th percentile size (MB)']:.2f}\n")
-        report.write(f"  Max: {summary_stats['Max size (MB)']:.2f}\n")
-        report.write(f"  Mean: {summary_stats['Mean size (MB)']:.2f}\n\n")
-        
-        report.write("Protein length statistics (residues):\n")
-        report.write(f"  Min: {int(summary_stats['Min protein length'])}\n")
-        report.write(f"  25th percentile: {int(summary_stats['25th percentile length'])}\n")
-        report.write(f"  Median: {int(summary_stats['Median protein length'])}\n")
-        report.write(f"  75th percentile: {int(summary_stats['75th percentile length'])}\n")
-        report.write(f"  Max: {int(summary_stats['Max protein length'])}\n")
-        report.write(f"  Mean: {int(summary_stats['Mean protein length'])}\n\n")
-        
-        report.write("Sequence length distribution (50 residue bins):\n")
+        for key in ["Min size (MB)", "25th percentile size (MB)", "Median size (MB)",
+                    "75th percentile size (MB)", "Max size (MB)", "Mean size (MB)"]:
+            report.write(f"  {key.replace(' size (MB)', '')}: {summary[key]:.2f}\n")
+
+        report.write("\nProtein length statistics (residues):\n")
+        for key in ["Min protein length", "25th percentile length", "Median protein length",
+                    "75th percentile length", "Max protein length", "Mean protein length"]:
+            report.write(f"  {key.replace(' protein length', '')}: {int(summary[key])}\n")
+
+        report.write("\nSequence length distribution (50-residue bins):\n")
         for label, count in seq_dist.items():
             report.write(f"  {label}: {count}\n")
-    
-    # === Plots ===
-    plt.figure(figsize=(10,6))
-    seq_dist.plot(kind='bar', color='skyblue')
-    plt.xlabel("Sequence length (residues)")
+
+    # === PLOTS ===
+    print("📊 Generating plots...")
+
+    # Sequence length distribution (with clean bin labels)
+    plt.figure(figsize=(10, 6))
+    seq_dist.plot(kind='bar', color='steelblue')
+    plt.xlabel("Sequence length range (residues)")
     plt.ylabel("Number of ensembles")
-    plt.title(f"Sequence length distribution - {main_name}")
-    plt.xticks(rotation=90)
+    plt.title(f"Sequence length distribution - {project_name}")
+    plt.xticks(ticks=range(len(seq_labels)), labels=seq_labels, rotation=90)
     plt.tight_layout()
-    plt.savefig(os.path.join(results_dir, f"{main_name}_plot_sequence_length_distribution.png"), dpi=200)
+    plt.savefig(os.path.join(results_dir, f"{project_name}_plot_sequence_length_distribution.png"), dpi=200)
     plt.close()
-    
-    plt.figure(figsize=(10,6))
-    plt.hist(df['size_MB'], bins=30, color='salmon')
+
+    # File size histogram
+    plt.figure(figsize=(10, 6))
+    plt.hist(df['size_MB'], bins=30, color='coral')
     plt.xlabel("File size (MB)")
     plt.ylabel("Number of ensembles")
-    plt.title(f"Ensemble file size distribution - {main_name}")
+    plt.title(f"Ensemble file size distribution - {project_name}")
     plt.tight_layout()
-    plt.savefig(os.path.join(results_dir, f"{main_name}_plot_file_size_distribution.png"), dpi=200)
+    plt.savefig(os.path.join(results_dir, f"{project_name}_plot_file_size_distribution.png"), dpi=200)
     plt.close()
-    
-    plt.figure(figsize=(10,6))
-    plt.scatter(df['avg_length'], df['size_MB'], alpha=0.6, color='green')
-    plt.xlabel("Average protein length (residues)")
+
+    # Length vs. size scatter plot
+    plt.figure(figsize=(10, 6))
+    plt.scatter(df['avg_length'], df['size_MB'], alpha=0.6, color='seagreen')
+    plt.xlabel("Protein length (residues)")
     plt.ylabel("File size (MB)")
-    plt.title(f"Sequence length vs File size - {main_name}")
+    plt.title(f"Protein length vs File size - {project_name}")
     plt.tight_layout()
-    plt.savefig(os.path.join(results_dir, f"{main_name}_plot_seq_length_vs_size.png"), dpi=200)
+    plt.savefig(os.path.join(results_dir, f"{project_name}_plot_seq_length_vs_size.png"), dpi=200)
     plt.close()
-    
-    print(f"✅ Results saved in {results_dir}\n")
+
+    print(f"🎯 All results saved under:\n  {results_dir}\n")
+    print("-" * 65)

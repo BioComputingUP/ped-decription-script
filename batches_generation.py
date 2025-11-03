@@ -4,144 +4,188 @@
 import os
 import shutil
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
-# === CONFIGURACIÓN ===
-# Lista de carpetas principales ("carpeta 1") que contienen:
-#   - subcarpeta "completed_*" con los PDBs
-#   - subcarpeta "results" con el TSV *_ensemble_analysis.tsv
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
 parent_folders = [
-    "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat2",
-#   "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat3",
+#    "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat2",
+    "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPCG_cat3",
 #   "/home/balbio/unipd/ped_deposition/AlphaFlex-IDPForge_cat3"
 ]
 
-# === BINS DE LONGITUD DE SECUENCIA (50 aa) ===
-seq_bins = list(range(0, 2551, 50))  # 0-50, 51-100, ..., 2501+
-seq_labels = [f"{i+1}-{i+50}" for i in seq_bins[:-1]]
+MAX_PDBS_PER_BATCH = 90
+BIN_STEP = 50
+
+# Sequence-length bins (50 aa increments)
+seq_bins = list(range(0, 2551, BIN_STEP))
+seq_labels = [f"{i+1}-{i+BIN_STEP}" for i in seq_bins[:-1]]
 seq_labels.append(">2500")
 bins_edges = seq_bins + [np.inf]
 
-# === FUNCIÓN PARA COPIAR LOS PDBs DE UN BATCH ===
-def copy_batch_files(batch_df, batch_dir, log_path):
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def print_header(title):
+    print("\n" + "=" * 70)
+    print(f" {title}")
+    print("=" * 70)
+
+def print_subheader(title):
+    print(f"\n--- {title} ---")
+
+def copy_batch_files(df_part, batch_dir, log_path):
+    """Copy PDBs of a sub-batch with progress reporting."""
     os.makedirs(batch_dir, exist_ok=True)
+    total = len(df_part)
+
     with open(log_path, "a") as log:
-        for _, row in batch_df.iterrows():
-            src = os.path.join(row['source_pdb_folder'], row['file'])
-            dst = os.path.join(batch_dir, row['file'])
+        for idx, (_, row) in enumerate(df_part.iterrows(), start=1):
+            src = os.path.join(row["source_pdb_folder"], row["file"])
+            dst = os.path.join(batch_dir, row["file"])
             try:
                 shutil.copy2(src, dst)
             except Exception as e:
-                log.write(f"Error copiando {src} -> {dst}: {e}\n")
+                log.write(f"[ERROR] {src} -> {dst}: {e}\n")
+            # Inline progress
+            print(f"    Copying file {idx}/{total}", end="\r")
+    print()  # newline after copy loop
 
-# === PROCESO PARA CADA CARPETA PADRE ===
+
+# ============================================================
+# MAIN PROCESSING LOOP
+# ============================================================
+
 for parent in parent_folders:
-    print(f"\n=== Procesando {parent} ===")
+    print_header(f"Processing parent folder: {parent}")
 
     results_dir = os.path.join(parent, "results")
     os.makedirs(results_dir, exist_ok=True)
 
-    # buscar subcarpeta "completed_*"
-    completed_subdirs = [os.path.join(parent, d) for d in os.listdir(parent) if d.startswith("completed_")]
-    if not completed_subdirs:
-        print(f"⚠️ No se encontró carpeta completed_* en {parent}, se omite.")
+    # Detect PDB folder
+    completed_dirs = [os.path.join(parent, d) for d in os.listdir(parent) if d.startswith("completed_")]
+    if not completed_dirs:
+        print(f"⚠️  No completed_* folder found. Skipping {parent}.")
         continue
-    completed_folder = completed_subdirs[0]
+    completed_folder = completed_dirs[0]
 
-    # buscar TSV
+    # Find TSV
     main_name = os.path.basename(parent)
     tsv_path = os.path.join(results_dir, f"{main_name}_ensemble_analysis.tsv")
     if not os.path.exists(tsv_path):
-        print(f"⚠️ TSV no encontrado en {tsv_path}, se omite.")
+        print(f"⚠️  Missing TSV file: {tsv_path}. Skipping.")
         continue
 
-    print(f"  TSV: {tsv_path}")
-    print(f"  PDBs: {completed_folder}")
+    print(f"📄  Ensemble TSV: {tsv_path}")
+    print(f"📂  PDB source:  {completed_folder}")
 
-    # leer TSV
+    # Load TSV
     df = pd.read_csv(tsv_path, sep="\t")
     df["source_pdb_folder"] = completed_folder
+    df["seq_bin"] = pd.cut(df["avg_length"], bins=bins_edges, labels=seq_labels, right=True)
 
-    # asignar bins
-    df['seq_bin'] = pd.cut(df['avg_length'], bins=bins_edges, labels=seq_labels, right=True)
+    output_base = os.path.join(results_dir, "batches_by_length")
+    os.makedirs(output_base, exist_ok=True)
+    log_path = os.path.join(output_base, "copy_log.txt")
 
-    # carpetas de salida
-    output_base_dir = os.path.join(results_dir, "batches_by_length")
-    os.makedirs(output_base_dir, exist_ok=True)
-    log_path = os.path.join(output_base_dir, "copy_log.txt")
+    batch_records = []
+    summary_records = []
 
-    # crear batches
-    batch_records, summary_records = [], []
-
+    # ============================================================
+    # PROCESS EACH SEQUENCE BIN
+    # ============================================================
     for bin_label in seq_labels:
-        df_bin = df[df['seq_bin'] == bin_label]
+        df_bin = df[df["seq_bin"] == bin_label]
         if df_bin.empty:
             continue
 
-        safe_label = bin_label.replace(">", "gt").replace(" ", "")
-        batch_dir = os.path.join(output_base_dir, f"batch_{safe_label}")
-        copy_batch_files(df_bin, batch_dir, log_path)
+        print_subheader(f"Sequence bin: {bin_label}")
+        print(f"  → Total PDBs in bin: {len(df_bin)}")
 
-        # asignaciones
-        for _, row in df_bin.iterrows():
-            batch_records.append({
+        n_chunks = int(np.ceil(len(df_bin) / MAX_PDBS_PER_BATCH))
+        df_chunks = [df_bin.iloc[i*MAX_PDBS_PER_BATCH:(i+1)*MAX_PDBS_PER_BATCH] for i in range(n_chunks)]
+
+        for i, df_part in enumerate(df_chunks, start=1):
+            safe_label = bin_label.replace(">", "gt").replace(" ", "")
+            part_name = f"batch_{safe_label}_part{i:02}" if n_chunks > 1 else f"batch_{safe_label}"
+            batch_dir = os.path.join(output_base, part_name)
+
+            print(f"  🧩 Creating sub-batch {i}/{n_chunks}: {part_name}")
+            print(f"     Files in this sub-batch: {len(df_part)}")
+            copy_batch_files(df_part, batch_dir, log_path)
+
+            batch_folder_rel = os.path.relpath(batch_dir, start=parent)
+
+            summary_records.append({
                 "seq_bin": bin_label,
-                "file": row["file"],
-                "source_pdb_folder": row["source_pdb_folder"]
+                "sub_batch": i,
+                "n_files": len(df_part),
+                "total_size_MB": df_part["size_MB"].sum(),
+                "avg_length": df_part["avg_length"].mean(),
+                "batch_folder": batch_folder_rel
             })
 
-        total_size = df_bin['size_MB'].sum()
-        avg_length = df_bin['avg_length'].mean()
-        summary_records.append({
-            "seq_bin": bin_label,
-            "n_files": int(len(df_bin)),
-            "total_size_MB": float(total_size),
-            "avg_length": float(avg_length),
-            "batch_folder": os.path.relpath(batch_dir, start=parent)
-        })
+            for _, row in df_part.iterrows():
+                batch_records.append({
+                    "seq_bin": bin_label,
+                    "sub_batch": i,
+                    "file": row["file"],
+                    "source_pdb_folder": row["source_pdb_folder"]
+                })
 
-    # guardar TSVs y reporte
-    assignment_path = os.path.join(output_base_dir, "batch_assignment_by_length.tsv")
-    summary_path = os.path.join(output_base_dir, "batch_summary_by_length.tsv")
-    report_path = os.path.join(output_base_dir, "batch_report_by_length.txt")
+    # ============================================================
+    # SAVE RESULTS
+    # ============================================================
+    assignment_tsv = os.path.join(output_base, "batch_assignment_by_length.tsv")
+    summary_tsv = os.path.join(output_base, "batch_summary_by_length.tsv")
+    report_txt = os.path.join(output_base, "batch_report_by_length.txt")
 
-    pd.DataFrame(batch_records).to_csv(assignment_path, sep="\t", index=False)
-    pd.DataFrame(summary_records).to_csv(summary_path, sep="\t", index=False)
+    pd.DataFrame(batch_records).to_csv(assignment_tsv, sep="\t", index=False)
+    pd.DataFrame(summary_records).to_csv(summary_tsv, sep="\t", index=False)
 
-    with open(report_path, "w") as rpt:
-        rpt.write(f"Batches por longitud de secuencia (50 aa)\n")
-        rpt.write(f"Output base: {output_base_dir}\n\n")
-        rpt.write("Resumen por bin:\n")
+    with open(report_txt, "w") as rpt:
+        rpt.write(f"Batch generation report (bins: 50 aa, max {MAX_PDBS_PER_BATCH} per batch)\n")
+        rpt.write(f"Parent: {parent}\n\n")
         for s in summary_records:
-            rpt.write(f"  Bin {s['seq_bin']}: {s['n_files']} archivos, total {s['total_size_MB']:.2f} MB, avg length {s['avg_length']:.1f} → {s['batch_folder']}\n")
+            rpt.write(f"  Bin {s['seq_bin']} - part {s['sub_batch']:02}: {s['n_files']} files | "
+                      f"{s['total_size_MB']:.2f} MB | Avg len {s['avg_length']:.1f} aa | "
+                      f"{s['batch_folder']}\n")
 
-    # === GRÁFICOS ===
+    # ============================================================
+    # PLOTS
+    # ============================================================
     if summary_records:
         df_summary = pd.DataFrame(summary_records)
 
-        # total size
-        plt.figure(figsize=(12,5))
-        plt.bar(df_summary["seq_bin"], df_summary["total_size_MB"])
-        plt.xticks(rotation=90)
-        plt.xlabel("Rango de longitud (residuos)")
-        plt.ylabel("Tamaño total (MB)")
-        plt.title("Tamaño total por batch de longitud")
+        # ✅ Clean X labels
+        df_summary["x_label"] = df_summary.apply(
+            lambda x: f"batch_{x['seq_bin']}_{x['sub_batch']}" if len(df_summary[df_summary['seq_bin'] == x['seq_bin']]) > 1 
+                      else f"batch_{x['seq_bin']}", axis=1
+        )
+
+        plt.figure(figsize=(12, 5))
+        plt.bar(df_summary["x_label"], df_summary["total_size_MB"])
+        plt.xticks(rotation=90, fontsize=7)
+        plt.ylabel("Total size (MB)")
+        plt.title("Total batch size per sequence-length bin")
         plt.tight_layout()
-        plt.savefig(os.path.join(output_base_dir, "batch_sizes_by_length.png"), dpi=200)
+        plt.savefig(os.path.join(output_base, "batch_sizes_by_length.png"), dpi=200)
         plt.close()
 
-        # número de proteínas
-        plt.figure(figsize=(12,5))
-        plt.bar(df_summary["seq_bin"], df_summary["n_files"])
-        plt.xticks(rotation=90)
-        plt.xlabel("Rango de longitud (residuos)")
-        plt.ylabel("Número de proteínas")
-        plt.title("Número de proteínas por batch de longitud")
+        plt.figure(figsize=(12, 5))
+        plt.bar(df_summary["x_label"], df_summary["n_files"])
+        plt.xticks(rotation=90, fontsize=7)
+        plt.ylabel("# of PDBs")
+        plt.title("Number of PDBs per batch")
         plt.tight_layout()
-        plt.savefig(os.path.join(output_base_dir, "batch_counts_by_length.png"), dpi=200)
+        plt.savefig(os.path.join(output_base, "batch_counts_by_length.png"), dpi=200)
         plt.close()
 
-    print(f"  ✅ Completado: resultados guardados en {output_base_dir}")
+    print(f"\n✅ Done! Output saved in: {output_base}")
 
-print("\n🎉 Todos los conjuntos procesados correctamente.")
+print("\n🎉 All parent folders processed successfully.")
